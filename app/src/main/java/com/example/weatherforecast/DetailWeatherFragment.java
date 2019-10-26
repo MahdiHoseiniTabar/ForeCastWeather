@@ -26,14 +26,22 @@ import java.net.URI;
 public class DetailWeatherFragment extends Fragment {
 
     public static final String QUERY = "com.example.weatherforecast.query";
-    ImageView imageViewIcon;
-    TextView textViewCityName;
-    TextView textViewState;
+    private ImageView imageViewIcon;
+    private TextView textViewCityName;
+    private TextView textViewState;
+    private TextView textViewPressure;
+    private TextView textViewHumidity;
+    private TextView textViewWind;
+    private TextView textViewTemp;
     private WeatherRepository repository;
     private WeatherStatus weatherStatus;
     private Uri uri;
     private String cityName;
     private String state;
+    private String temp;
+    private String pressure;
+    private String humidity;
+    private String wind;
 
     public static DetailWeatherFragment newInstance() {
 
@@ -56,22 +64,32 @@ public class DetailWeatherFragment extends Fragment {
         textViewCityName = view.findViewById(R.id.text_city_name);
         textViewState = view.findViewById(R.id.text_state);
         imageViewIcon = view.findViewById(R.id.img_icon);
+        textViewTemp = view.findViewById(R.id.text_temp);
+        textViewHumidity = view.findViewById(R.id.text_humidity);
+        textViewPressure = view.findViewById(R.id.text_pressure);
+        textViewWind = view.findViewById(R.id.text_wind);
 
         repository = WeatherRepository.getInstance();
         weatherStatus = repository.getWeatherStatus();
 
-        state = weatherStatus.getWeatherList().get(0).getState();
+        state = weatherStatus.getWeather().get(0).getMain();
         cityName = weatherStatus.getName();
         uri = Uri.parse("https://openweathermap.org/img/w/"
-                + weatherStatus.getWeatherList().get(0).getIcon()
+                + weatherStatus.getWeather().get(0).getIcon()
                 + ".png");
+        temp = weatherStatus.getMain().getTemp() + " ' c";
+        pressure = weatherStatus.getMain().getPressure() + "";
+        humidity = weatherStatus.getMain().getHumidity() + "";
+        wind = weatherStatus.getWind().getSpeed() + " m/s";
 
-
-        Log.i("DetailWeatherFragment", "onCreateView: " + uri);
 
         textViewState.setText(state);
         textViewCityName.setText(cityName);
-        Picasso.get().load(uri).into(imageViewIcon);
+        textViewTemp.setText(temp);
+        textViewWind.setText(wind);
+        textViewPressure.setText(pressure);
+        textViewHumidity.setText(humidity);
+        Picasso.get().load(uri).placeholder(getResources().getDrawable(R.drawable.placeholder)).into(imageViewIcon);
 
         return view;
     }

@@ -5,17 +5,21 @@ import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.weatherforecast.model.WeatherRepository;
 import com.example.weatherforecast.model.WeatherStatus;
 import com.example.weatherforecast.network.API;
 import com.example.weatherforecast.network.RetrofitInstance;
+
+import java.io.IOException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
         searchView = findViewById(R.id.search_view);
         progressBar.setVisibility(View.INVISIBLE);
+        searchView.setIconified(false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -55,25 +60,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onQueryNetwork(String query) {
-        api.getCurrentWeather(query, "0c9bc42de02c9735bbe5292140adf038").enqueue(new Callback<WeatherStatus>() {
-            @Override
-            public void onResponse(Call<WeatherStatus> call, Response<WeatherStatus> response) {
-                if (response.isSuccessful()) {
-                    Log.i(TAG, "onResponse: " + response.body().getName());
-                    WeatherRepository.getInstance().setWeatherStatus(response.body());
-                    setUpFragment();
-                }
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onFailure(Call<WeatherStatus> call, Throwable t) {
-                Log.i(TAG, "onFailure: " + t.getMessage());
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-        });
-
-
+        new WeatherAsync().execute(query);
     }
 
 
@@ -86,34 +73,31 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-   /* @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
 
-        getMenuInflater().inflate(R.menu.menu,menu);
-
-        MenuItem item = menu.findItem(R.id.search_view);
-        searchView = (SearchView) item;
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-
-                Log.i(TAG, "onQueryTextSubmit: " + query);
-
-
-                return false;
+    public class WeatherAsync extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            try {
+                Response<WeatherStatus> weatherStateResponse = api.getCurrentWeather(strings[0],
+                        "metric").execute();
+                WeatherRepository.getInstance().setWeatherStatus(weatherStateResponse.body());
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            return false;
+        }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if (aBoolean) {
+                progressBar.setVisibility(View.INVISIBLE);
+                setUpFragment();
+            } else {
+                Toast.makeText(MainActivity.this, "fail to get response", Toast.LENGTH_SHORT).show();
             }
-        });
+        }
+    }
 
-
-
-
-
-        return super.onCreateOptionsMenu(menu);
-    }*/
 }
