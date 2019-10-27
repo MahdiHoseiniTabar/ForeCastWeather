@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FF3D00">
+    android:background="#BA68C8">
 
     <androidx.appcompat.widget.SearchView
         android:id="@+id/search_view"

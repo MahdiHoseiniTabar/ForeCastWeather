@@ -80,8 +80,10 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Response<WeatherStatus> weatherStateResponse = api.getCurrentWeather(strings[0],
                         "metric").execute();
-                WeatherRepository.getInstance().setWeatherStatus(weatherStateResponse.body());
-                return true;
+                if (weatherStateResponse.isSuccessful()) {
+                    WeatherRepository.getInstance().setWeatherStatus(weatherStateResponse.body());
+                    return true;
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -92,11 +94,11 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
             if (aBoolean) {
-                progressBar.setVisibility(View.INVISIBLE);
                 setUpFragment();
             } else {
                 Toast.makeText(MainActivity.this, "fail to get response", Toast.LENGTH_SHORT).show();
             }
+            progressBar.setVisibility(View.INVISIBLE);
         }
     }
 
